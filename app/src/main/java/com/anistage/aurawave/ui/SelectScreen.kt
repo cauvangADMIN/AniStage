@@ -18,6 +18,8 @@ import coil.compose.AsyncImage
 import com.anistage.aurawave.model.RemoteData
 import com.anistage.aurawave.model.SelectionState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalConfiguration
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -36,6 +38,10 @@ fun SelectScreen(
         1 -> data.music
         else -> data.background
     }
+
+    val currentName = items.getOrNull(selectedIndex)
+        ?.substringAfterLast("/")
+        ?.substringBefore(".")
 
     val title = when (step) {
         0 -> "CHARACTER SELECT"
@@ -98,16 +104,27 @@ fun SelectScreen(
             )
         }
 
-        // ================= TITLE =================
-        Text(
-            text = title,
-            fontSize = 34.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFFF2ED1),
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(32.dp)
-        )
+        // ================= CINEMATIC NAME (TOP RIGHT ZONE) =================
+        AnimatedContent(
+            targetState = currentName,
+            transitionSpec = {
+                fadeIn(tween(400)) togetherWith fadeOut(tween(400))
+            }
+        ) { name ->
+
+            Text(
+                text = name ?: "",
+                fontSize = 44.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.TopStart)      // 👈 quan trọng
+                    .offset(
+                        x = (LocalConfiguration.current.screenWidthDp * 0.45f).dp,
+                        y = (LocalConfiguration.current.screenHeightDp * 0.12f).dp
+                    )
+            )
+        }
 
         // ================= SELECTOR SECTION =================
         Column(
@@ -195,6 +212,18 @@ fun SelectScreen(
             }
 
             Spacer(modifier = Modifier.height(30.dp))
+
+            // ================= CENTER TITLE =================
+            Text(
+                text = title,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFFF2ED1),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                textAlign = TextAlign.Center
+            )
 
             // ================= RETURN / CONFIRM =================
             Row(
