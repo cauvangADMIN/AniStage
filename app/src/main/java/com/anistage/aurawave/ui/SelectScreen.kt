@@ -20,6 +20,9 @@ import com.anistage.aurawave.model.SelectionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -43,6 +46,9 @@ fun SelectScreen(
         ?.substringAfterLast("/")
         ?.substringBefore(".")
 
+    var visibleName by remember { mutableStateOf(currentName) }
+    var isVisible by remember { mutableStateOf(true) }
+
     val title = when (step) {
         0 -> "CHARACTER SELECT"
         1 -> "MUSIC SELECT"
@@ -52,11 +58,22 @@ fun SelectScreen(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(currentName) {
+        if (currentName != visibleName) {
+            isVisible = false
+            delay(200)   // đợi exit xong
+            visibleName = currentName
+            isVisible = true
+        }
+    }
+
     LaunchedEffect(selectedIndex) {
         listState.animateScrollToItem(selectedIndex)
     }
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+        .background(Color.Black)) {
 
         // ================= BACKGROUND BLUR =================
         AsyncImage(
@@ -105,23 +122,28 @@ fun SelectScreen(
         }
 
         // ================= CINEMATIC NAME (TOP RIGHT ZONE) =================
-        AnimatedContent(
-            targetState = currentName,
-            transitionSpec = {
-                fadeIn(tween(400)) togetherWith fadeOut(tween(400))
-            }
-        ) { name ->
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = slideInHorizontally(
+                initialOffsetX = { it / 2 },
+                animationSpec = tween(350)
+            ) + fadeIn(tween(350)),
+            exit = slideOutHorizontally(
+                targetOffsetX = { -it / 2 },
+                animationSpec = tween(300)
+            ) + fadeOut(tween(200))
+        ) {
 
             Text(
-                text = name ?: "",
+                text = visibleName ?: "",
                 fontSize = 44.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier
-                    .align(Alignment.TopStart)      // 👈 quan trọng
-                    .offset(
-                        x = (LocalConfiguration.current.screenWidthDp * 0.45f).dp,
-                        y = (LocalConfiguration.current.screenHeightDp * 0.12f).dp
+                    .align(Alignment.TopStart)
+                    .padding(
+                        start = maxWidth * 0.45f,
+                        top = maxHeight * 0.12f
                     )
             )
         }
