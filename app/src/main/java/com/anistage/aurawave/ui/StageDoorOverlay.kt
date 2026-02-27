@@ -14,9 +14,11 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.anistage.aurawave.StageState
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.painter.Painter
 
 @Composable
 fun StageDoorOverlay(
+    painter: Painter,
     state: StageState,
     onClosed: () -> Unit,
     onOpened: () -> Unit
@@ -75,7 +77,7 @@ fun StageDoorOverlay(
     ) {
 
         Image(
-            painter = painterResource(R.drawable.stage_door),
+            painter = painter,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier

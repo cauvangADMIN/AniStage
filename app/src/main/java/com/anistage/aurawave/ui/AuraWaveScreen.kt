@@ -1,11 +1,14 @@
 package com.anistage.aurawave.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -16,12 +19,15 @@ import com.anistage.aurawave.model.SelectionState
 @Composable
 fun AuraWaveScreen(
     audioEngine: AudioEngine,
-    selection: SelectionState
+    selection: SelectionState,
+    onRequestBack: () -> Unit
 ) {
 
     val isReady by audioEngine.isReady.collectAsState()
     val spectrum by audioEngine.spectrumFlow.collectAsState()
     val beat by audioEngine.beatFlow.collectAsState()
+
+    var showDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -34,7 +40,7 @@ fun AuraWaveScreen(
             }
     ) {
 
-        // ===== BACKGROUND (FROM URL) =====
+        // ===== BACKGROUND =====
         AsyncImage(
             model = selection.background,
             contentDescription = null,
@@ -48,10 +54,8 @@ fun AuraWaveScreen(
 
         } else {
 
-            // ===== LIGHT EFFECT =====
             LightEffect(intensity = beat)
 
-            // ===== CHARACTER (FROM URL) =====
             AsyncImage(
                 model = selection.character,
                 contentDescription = null,
@@ -61,7 +65,6 @@ fun AuraWaveScreen(
                     .fillMaxHeight(0.85f)
             )
 
-            // ===== SPECTRUM =====
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -69,6 +72,56 @@ fun AuraWaveScreen(
             ) {
                 WaveformView(spectrum)
             }
+        }
+
+        // ===== BACK BUTTON =====
+        Text(
+            text = "← Back",
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .background(Color.Black.copy(alpha = 0.5f))
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .clickable {
+                    showDialog = true
+                }
+        )
+
+        // ===== CONFIRM DIALOG =====
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showDialog = false
+                    audioEngine.togglePlayback() // resume nếu đang pause
+                },
+                title = {
+                    Text("Stop music ?")
+                },
+                text = {
+                    Text("Stop music and back to selection screen ?")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDialog = false
+                            onRequestBack()
+                        }
+                    ) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showDialog = false
+                            audioEngine.togglePlayback() // resume
+                        }
+                    ) {
+                        Text("No")
+                    }
+                }
+            )
         }
     }
 }
