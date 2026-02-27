@@ -30,11 +30,7 @@ fun SelectScreen(
     data: RemoteData,
     onFinish: (SelectionState) -> Unit
 ) {
-
     var step by remember { mutableStateOf(0) }
-    var selectedIndex by remember { mutableStateOf(0) }
-
-    val selection = remember { SelectionState() }
 
     val items = when (step) {
         0 -> data.character
@@ -42,6 +38,9 @@ fun SelectScreen(
         else -> data.background
     }
 
+    var selectedIndex by remember { mutableStateOf(0) }
+    val safeIndex = selectedIndex.coerceIn(0, items.lastIndex)
+    val selection = remember { SelectionState() }
     val currentName = items.getOrNull(selectedIndex)
         ?.substringAfterLast("/")
         ?.substringBefore(".")
@@ -64,6 +63,11 @@ fun SelectScreen(
             delay(200)   // đợi exit xong
             visibleName = currentName
             isVisible = true
+        }
+    }
+    LaunchedEffect(items.size) {
+        if (selectedIndex > items.lastIndex) {
+            selectedIndex = 0
         }
     }
 
@@ -103,14 +107,14 @@ fun SelectScreen(
 
         // ================= CHARACTER (FIXED POSITION) =================
         AnimatedContent(
-            targetState = selectedIndex,
+            targetState = safeIndex,
             transitionSpec = {
                 fadeIn(tween(500)) togetherWith fadeOut(tween(500))
             }
         ) { index ->
 
             AsyncImage(
-                model = items[index],
+                model = items.getOrNull(index),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier

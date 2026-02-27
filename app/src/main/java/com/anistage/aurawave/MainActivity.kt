@@ -25,7 +25,9 @@ class MainActivity : ComponentActivity() {
             var remoteData by remember { mutableStateOf<RemoteData?>(null) }
             var selection by remember { mutableStateOf<SelectionState?>(null) }
 
-            // Fetch JSON từ GitHub
+            val engine = remember { AudioEngine(this) }
+
+            // Fetch JSON
             LaunchedEffect(Unit) {
                 remoteData = withContext(Dispatchers.IO) {
                     RemoteRepository.fetchData()
@@ -42,21 +44,27 @@ class MainActivity : ComponentActivity() {
 
                 else -> {
 
-                    val engine = remember {
-                        AudioEngine(this)
-                    }
-
-                    // Play khi đã chọn xong
+                    // Play khi đã chọn
                     LaunchedEffect(selection) {
-                        engine.play(
-                            selection!!.music,
-                            selection!!.spectrum
-                        )
+                        selection?.let {
+                            engine.play(
+                                it.music,
+                                it.spectrum
+                            )
+                        }
                     }
 
-                    AuraWaveScreen(engine)
+                    AuraWaveScreen(
+                        audioEngine = engine,
+                        selection = selection!!
+                    )
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // đảm bảo giải phóng player
     }
 }

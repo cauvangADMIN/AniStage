@@ -1,21 +1,23 @@
 package com.anistage.aurawave.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.anistage.aurawave.R
+import coil.compose.AsyncImage
 import com.anistage.aurawave.audio.AudioEngine
+import com.anistage.aurawave.model.SelectionState
 
 @androidx.media3.common.util.UnstableApi
 @Composable
-fun AuraWaveScreen(audioEngine: AudioEngine) {
+fun AuraWaveScreen(
+    audioEngine: AudioEngine,
+    selection: SelectionState
+) {
 
     val isReady by audioEngine.isReady.collectAsState()
     val spectrum by audioEngine.spectrumFlow.collectAsState()
@@ -32,9 +34,9 @@ fun AuraWaveScreen(audioEngine: AudioEngine) {
             }
     ) {
 
-        // Background
-        Image(
-            painter = painterResource(R.drawable.bg),
+        // ===== BACKGROUND (FROM URL) =====
+        AsyncImage(
+            model = selection.background,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -46,20 +48,20 @@ fun AuraWaveScreen(audioEngine: AudioEngine) {
 
         } else {
 
-            // Light Effect
+            // ===== LIGHT EFFECT =====
             LightEffect(intensity = beat)
 
-            // Character
-            Image(
-                painter = painterResource(R.drawable.character),
+            // ===== CHARACTER (FROM URL) =====
+            AsyncImage(
+                model = selection.character,
                 contentDescription = null,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .fillMaxHeight(0.85f),   // 👈 điều chỉnh nếu muốn cao hơn
-                contentScale = ContentScale.Fit
+                    .fillMaxHeight(0.85f)
             )
 
-            // Spectrum footer
+            // ===== SPECTRUM =====
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

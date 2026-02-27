@@ -24,6 +24,8 @@ class AudioEngine(private val context: Context) {
 
     fun play(musicUrl: String, spectrumUrl: String) {
 
+        _isReady.value = false
+
         spectrumPlayer.loadFromUrl(spectrumUrl)
 
         val mediaItem = MediaItem.fromUri(musicUrl)
@@ -46,7 +48,6 @@ class AudioEngine(private val context: Context) {
             while (isActive) {
 
                 if (player.isPlaying) {
-
                     val position = player.currentPosition
                     spectrumPlayer.update(position)
                 }
