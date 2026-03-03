@@ -23,6 +23,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import kotlinx.coroutines.delay
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicNote
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -44,6 +47,7 @@ fun SelectScreen(
     val currentName = items.getOrNull(selectedIndex)
         ?.substringAfterLast("/")
         ?.substringBefore(".")
+        ?.replace("_", " ")
 
     var visibleName by remember { mutableStateOf(currentName) }
     var isVisible by remember { mutableStateOf(true) }
@@ -220,14 +224,39 @@ fun SelectScreen(
                                     .clickable {
                                         selectedIndex = index
                                     }
+
+
                             ) {
-                                AsyncImage(
-                                    model = url,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    alignment = Alignment.TopCenter,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                                // ===== MUSIC STEP → ICON THUMBNAIL =====
+                                if (step == 1) {
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.6f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.MusicNote,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFF2ED1),
+                                            modifier = Modifier
+                                                .fillMaxSize(0.6f)   // fit đẹp trong thumbnail
+                                        )
+                                    }
+
+                                } else {
+
+                                    // ===== CHARACTER / BACKGROUND =====
+                                    AsyncImage(
+                                        model = url,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        alignment = Alignment.TopCenter,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+
                             }
                         }
                     }
