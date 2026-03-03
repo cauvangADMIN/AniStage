@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.anistage.aurawave.audio.AudioEngine
 import com.anistage.aurawave.model.SelectionState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @androidx.media3.common.util.UnstableApi
 @Composable
@@ -24,10 +26,12 @@ fun AuraWaveScreen(
 ) {
 
     val isReady by audioEngine.isReady.collectAsState()
+    val isPlaying by audioEngine.isPlaying.collectAsState()
     val spectrum by audioEngine.spectrumFlow.collectAsState()
     val beat by audioEngine.beatFlow.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -36,7 +40,15 @@ fun AuraWaveScreen(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) {
-                audioEngine.togglePlayback()
+
+                if (!isReady) return@clickable
+
+                // Toggle dựa trên state thật
+                if (isPlaying) {
+                    audioEngine.pause()
+                } else {
+                    audioEngine.resume()
+                }
             }
     ) {
 
@@ -62,7 +74,7 @@ fun AuraWaveScreen(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .fillMaxHeight(0.85f)
+                    .fillMaxHeight(0.95f)
             )
 
             Box(
@@ -93,19 +105,28 @@ fun AuraWaveScreen(
             AlertDialog(
                 onDismissRequest = {
                     showDialog = false
-                    audioEngine.togglePlayback() // resume nếu đang pause
+                    // chỉ resume nếu trước đó đang play
+                    if (!isPlaying) {
+                        audioEngine.resume()
+                    }
                 },
                 title = {
-                    Text("Stop music ?")
+                    Text("Stop music?")
                 },
                 text = {
-                    Text("Stop music and back to selection screen ?")
+                    Text("Stop music and back to selection screen?")
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
                             showDialog = false
-                            onRequestBack()
+
+                            audioEngine.fadeOutAndPause()
+
+                            scope.launch {
+                                delay(400)
+                                onRequestBack()
+                            }
                         }
                     ) {
                         Text("Yes")
@@ -115,7 +136,9 @@ fun AuraWaveScreen(
                     TextButton(
                         onClick = {
                             showDialog = false
-                            audioEngine.togglePlayback() // resume
+                            if (!isPlaying) {
+                                audioEngine.resume()
+                            }
                         }
                     ) {
                         Text("No")
