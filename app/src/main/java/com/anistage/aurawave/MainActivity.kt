@@ -35,8 +35,12 @@ enum class StageMode {
 @UnstableApi
 class MainActivity : ComponentActivity() {
 
+    private lateinit var engine: AudioEngine   // <-- giữ reference rõ ràng
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        engine = AudioEngine(this)   // tạo 1 lần duy nhất
 
         setContent {
 
@@ -48,8 +52,6 @@ class MainActivity : ComponentActivity() {
 
             var stageState by remember { mutableStateOf(StageState.Idle) }
             var stageMode by remember { mutableStateOf(StageMode.None) }
-
-            val engine = remember { AudioEngine(this) }
 
             // ===== PRELOAD STAGE DOOR IMAGE =====
             val stagePainter = painterResource(R.drawable.stage_door)
@@ -121,7 +123,7 @@ class MainActivity : ComponentActivity() {
 
                                 // ===== EXIT FLOW =====
                                 StageMode.Exiting -> {
-                                    engine.release()
+                                    engine.fadeOutAndPause()  // <-- FIX: không release
                                     selection = null
                                 }
 
@@ -143,7 +145,7 @@ class MainActivity : ComponentActivity() {
 
                 when (stageMode) {
 
-                    // ===== ENTER: đợi nhạc 3s =====
+                    // ===== ENTER FLOW =====
                     StageMode.Entering -> {
                         selection?.let {
                             delay(3000)
@@ -151,7 +153,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // ===== EXIT: đợi SelectScreen load + 3s =====
+                    // ===== EXIT FLOW =====
                     StageMode.Exiting -> {
                         if (selection == null) {
                             delay(3000)
@@ -167,7 +169,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // đảm bảo giải phóng player
-        // engine.release() nếu muốn tuyệt đối an toàn
+        engine.release()   // chỉ release khi Activity destroy
     }
 }
