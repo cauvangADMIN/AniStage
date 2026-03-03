@@ -112,16 +112,27 @@ fun SelectScreen(
                 fadeIn(tween(500)) togetherWith fadeOut(tween(500))
             }
         ) { index ->
+            val isBackgroundStep = step == 2
 
             AsyncImage(
                 model = items.getOrNull(index),
                 contentDescription = null,
-                contentScale = ContentScale.Fit,
+                contentScale = if (isBackgroundStep)
+                    ContentScale.Crop
+                else
+                    ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxHeight(0.92f)
-                    .align(Alignment.CenterStart)
-                    .padding(start = 40.dp)   // 👈 giữ nhân vật trong màn hình
-                    .scale(1.15f)
+                    .then(
+                        if (isBackgroundStep) {
+                            Modifier.align(Alignment.Center)      // ✅ căn giữa
+                        } else {
+                            Modifier
+                                .align(Alignment.CenterStart)     // 👈 giữ nguyên cho character/music
+                                .padding(start = 40.dp)
+                                .scale(1.15f)
+                        }
+                    )
             )
         }
 
