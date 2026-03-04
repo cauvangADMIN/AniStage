@@ -155,7 +155,7 @@ fun SelectScreen(
 
             Text(
                 text = visibleName ?: "",
-                fontSize = 44.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier
